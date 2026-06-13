@@ -1,6 +1,11 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { StellarWalletContext, WalletConnectionStatus, SDKEvent, StellarWalletContextType } from '../provider/context';
-import { xdr } from '@stellar/stellar-sdk';
+import React, { useState, useMemo, useRef } from "react";
+import {
+  StellarWalletContext,
+  WalletConnectionStatus,
+  SDKEvent,
+  StellarWalletContextType,
+} from "../provider/context";
+import { xdr } from "@stellar/stellar-sdk";
 
 /**
  * Props accepted by MockWalletProvider.
@@ -13,7 +18,7 @@ export interface MockWalletProviderProps {
   /**
    * Simulated target network (default: 'testnet')
    */
-  network?: 'testnet' | 'mainnet';
+  network?: "testnet" | "mainnet";
   /**
    * Preset value returned by useSignTransaction's sign() call.
    * If an instance of Error is passed, it throws instead.
@@ -40,23 +45,26 @@ export interface MockWalletProviderProps {
 }
 
 export const MockWalletProvider: React.FC<MockWalletProviderProps> = ({
-  publicKey = 'GABC...TESTKEY',
-  network = 'testnet',
-  signResponse = 'signed_xdr_placeholder',
-  submitResponse = { hash: 'tx_hash_mock', ledger: 100, resultCode: 'tx_success', rawResponse: {} },
-  contractResponse = xdr.ScVal.scvVoid(),
-  initialStatus = 'connected',
+  publicKey = "GABC...TESTKEY",
+  network = "testnet",
+  signResponse = "signed_xdr_placeholder",
+  initialStatus = "connected",
   children,
-}) => {
+}: MockWalletProviderProps): JSX.Element => {
   const [status, setStatus] = useState<WalletConnectionStatus>(initialStatus);
   const [currentPublicKey, setCurrentPublicKey] = useState<string | null>(
-    initialStatus === 'connected' ? publicKey : null
+    initialStatus === "connected" ? publicKey : null,
   );
 
-  const listenersRef = useRef<Map<SDKEvent, Set<(payload: any) => void>>>(new Map());
+  const listenersRef = useRef<Map<SDKEvent, Set<(payload: any) => void>>>(
+    new Map(),
+  );
 
   // Stub functions for events
-  const on = (event: SDKEvent, callback: (payload: any) => void): (() => void) => {
+  const on = (
+    event: SDKEvent,
+    callback: (payload: any) => void,
+  ): (() => void) => {
     if (!listenersRef.current.has(event)) {
       listenersRef.current.set(event, new Set());
     }
@@ -67,52 +75,63 @@ export const MockWalletProvider: React.FC<MockWalletProviderProps> = ({
   };
 
   const emit = (event: SDKEvent, payload: any): void => {
-    listenersRef.current.get(event)?.forEach((cb) => cb(payload));
+    listenersRef.current
+      .get(event)
+      ?.forEach((cb: (payload: any) => void) => cb(payload));
   };
 
   const connect = async (): Promise<void> => {
-    setStatus('connected');
+    setStatus("connected");
     setCurrentPublicKey(publicKey);
-    emit('wallet:connected', { publicKey, network });
+    emit("wallet:connected", { publicKey, network });
   };
 
   const disconnect = async (): Promise<void> => {
-    setStatus('disconnected');
+    setStatus("disconnected");
     setCurrentPublicKey(null);
-    emit('wallet:disconnected', { reason: 'user_disconnected' });
+    emit("wallet:disconnected", { reason: "user_disconnected" });
   };
 
   // Mocked version of WalletConnectManager to satisfy types
   const mockManager = useMemo(() => {
     return {
       initialize: async () => {},
-      connect: async () => ({} as any),
+      connect: async () => ({}) as any,
       disconnect: async () => {},
-      getSession: () => (status === 'connected' ? ({} as any) : null),
+      getSession: () => (status === "connected" ? ({} as any) : null),
       signTransaction: async (xdrString: string) => {
-        console.log('MockWalletProvider: Intercepted signTransaction request for XDR:', xdrString);
+        console.log(
+          "MockWalletProvider: Intercepted signTransaction request for XDR:",
+          xdrString,
+        );
         if (signResponse instanceof Error) {
           throw signResponse;
         }
-        return signResponse;
+        return signResponse as string;
       },
       signMessage: async (msg: string) => {
-        console.log('MockWalletProvider: Intercepted signMessage request for message:', msg);
-        return 'mock_signature';
+        console.log(
+          "MockWalletProvider: Intercepted signMessage request for message:",
+          msg,
+        );
+        return "mock_signature";
       },
     } as any;
   }, [status, signResponse]);
 
-  const contextValue = useMemo<StellarWalletContextType>(() => ({
-    status,
-    publicKey: currentPublicKey,
-    network,
-    connect,
-    disconnect,
-    manager: mockManager,
-    on,
-    emit,
-  }), [status, currentPublicKey, network, mockManager]);
+  const contextValue = useMemo<StellarWalletContextType>(
+    () => ({
+      status,
+      publicKey: currentPublicKey,
+      network,
+      connect,
+      disconnect,
+      manager: mockManager,
+      on,
+      emit,
+    }),
+    [status, currentPublicKey, network, mockManager],
+  );
 
   return (
     <StellarWalletContext.Provider value={contextValue}>
