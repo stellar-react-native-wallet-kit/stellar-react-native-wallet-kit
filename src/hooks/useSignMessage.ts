@@ -34,14 +34,14 @@ export function useSignMessage() {
     try {
       // Trigger stellar_signMessage call via WalletConnectManager
       const sigHex = await context.manager.signMessage(message);
-      
+
       setSignature(sigHex);
       return sigHex;
     } catch (err: any) {
-      let finalError = err instanceof StellarWalletError
+      const finalError = err instanceof StellarWalletError
         ? err
         : new StellarWalletError('W002', 'User rejected or failed to sign the message.', err);
-      
+
       setError(finalError);
       throw finalError;
     } finally {

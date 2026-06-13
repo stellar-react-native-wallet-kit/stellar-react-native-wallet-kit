@@ -12,9 +12,9 @@ import { Transaction, FeeBumpTransaction } from '@stellar/stellar-sdk';
  * const signedXdr = await sign(tx);
  */
 export function useSignTransaction() {
-  const { status, network } = useWalletState();
+  const { status } = useWalletState();
   const context = useContext(StellarWalletContext);
-  
+
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<StellarWalletError | null>(null);
 
@@ -44,16 +44,16 @@ export function useSignTransaction() {
     try {
       // Convert Transaction instance to XDR string
       const xdrString = tx.toEnvelope().toXDR('base64');
-      
+
       // Request signature from Freighter Mobile through WalletConnect manager
       const signedXdr = await context.manager.signTransaction(xdrString);
-      
+
       context.emit('tx:sign_approved', { txHash, signedXdr });
       return signedXdr;
     } catch (err: any) {
       // TODO: Parse WalletConnect / Freighter exception into W002 (UserRejected) or standard errors
-      let finalError = err instanceof StellarWalletError 
-        ? err 
+      const finalError = err instanceof StellarWalletError
+        ? err
         : new StellarWalletError('W002', 'User rejected signature request.', err);
 
       setError(finalError);

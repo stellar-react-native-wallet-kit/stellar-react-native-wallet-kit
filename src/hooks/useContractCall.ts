@@ -40,7 +40,7 @@ export function useContractCall(contractId: string) {
   const { publicKey, network } = useWalletState();
   const { sign } = useSignTransaction();
   const { submit } = useSubmitTransaction();
-  
+
   const context = useContext(StellarWalletContext);
 
   const [invoking, setInvoking] = useState(false);
@@ -85,11 +85,11 @@ export function useContractCall(contractId: string) {
       const signedXdr = await sign(simResult.transaction);
 
       // Step 4: Submit signed transaction to Horizon
-      const submitResult = await submit(signedXdr);
+      await submit(signedXdr);
 
       // Step 5: Extract return value from transaction metadata and decode it
       // TODO: Extract result ScVal from Horizon submitResult (e.g. from txMeta)
-      const mockResultScVal = simResult.result || xdr.ScVal.scvVoid(); 
+      const mockResultScVal = simResult.result || xdr.ScVal.scvVoid();
       const decodedVal = decodeContractResult(mockResultScVal);
 
       setResult(decodedVal);
@@ -104,10 +104,10 @@ export function useContractCall(contractId: string) {
 
       return decodedVal;
     } catch (err: any) {
-      let finalError = err instanceof StellarWalletError
+      const finalError = err instanceof StellarWalletError
         ? err
         : new StellarWalletError('S001', 'Soroban contract invocation failed.', err);
-      
+
       setError(finalError);
       throw finalError;
     } finally {
