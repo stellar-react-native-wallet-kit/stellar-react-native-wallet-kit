@@ -1,4 +1,4 @@
- {
+{
   "name": "@stellar/react-native-wallet-kit",
   "version": "0.1.0",
   "description": "React Native SDK for connecting to Freighter Mobile and signing Stellar/Soroban transactions",
@@ -35,7 +35,8 @@
   },
   "overrides": {
     "react-native-get-random-values": "^1.11.0",
-    "@react-native-async-storage/async-storage": "^1.24.0"
+    "@react-native-async-storage/async-storage": "^1.24.0",
+    "react-test-renderer": "18.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
@@ -43,6 +44,7 @@
     "@babel/preset-react": "^7.24.0",
     "@babel/preset-typescript": "^7.24.0",
     "@stellar/stellar-sdk": "^12.3.0",
+    "@testing-library/react-native": "^12.9.0",
     "@types/jest": "^29.5.12",
     "@types/react": "^18.2.64",
     "@types/react-native": "^0.73.0",
