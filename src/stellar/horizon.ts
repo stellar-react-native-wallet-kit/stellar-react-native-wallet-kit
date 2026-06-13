@@ -62,10 +62,10 @@ export interface StellarAccountDetails {
 export async function submitTransaction(
   signedXdr: string,
   network: 'testnet' | 'mainnet',
-  horizonUrl?: string
+  _horizonUrl?: string
 ): Promise<HorizonSubmitResult> {
   console.log('submitTransaction: submitting to Horizon, network:', network);
-  
+
   // TODO: Resolve Horizon Server
   // const url = horizonUrl || (network === 'testnet' 
   //   ? 'https://horizon-testnet.stellar.org' 
@@ -86,14 +86,12 @@ export async function submitTransaction(
  * Fetches current on-chain details for an account.
  */
 export async function fetchAccountDetails(
-  address: string,
-  network: 'testnet' | 'mainnet',
-  horizonUrl?: string
+  address: string
 ): Promise<StellarAccountDetails> {
   console.log('fetchAccountDetails: loading account details for:', address);
-  
+
   // TODO: server.loadAccount(address)
-  
+
   return {
     publicKey: address,
     sequence: '0',
@@ -111,7 +109,7 @@ export function pollAccountState(
   intervalMs: number,
   onUpdate: (details: StellarAccountDetails) => void,
   onError: (error: Error) => void,
-  horizonUrl?: string
+  _horizonUrl?: string
 ): () => void {
   console.log(`pollAccountState: start polling for ${address} every ${intervalMs}ms`);
 
@@ -121,7 +119,7 @@ export function pollAccountState(
   const poll = async () => {
     if (!active) return;
     try {
-      const details = await fetchAccountDetails(address, network, horizonUrl);
+      const details = await fetchAccountDetails(address);
       if (active) onUpdate(details);
     } catch (err) {
       if (active) onError(err as Error);

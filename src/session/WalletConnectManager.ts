@@ -26,10 +26,9 @@ export interface WalletConnectManagerConfig {
 export class WalletConnectManager {
   private client: SignClient | null = null;
   private activeSession: SessionTypes.Struct | null = null;
-  private config: WalletConnectManagerConfig;
 
-  constructor(config: WalletConnectManagerConfig) {
-    this.config = config;
+  constructor(_config: WalletConnectManagerConfig) {
+    // Config will be used once implementation is complete
   }
 
   /**

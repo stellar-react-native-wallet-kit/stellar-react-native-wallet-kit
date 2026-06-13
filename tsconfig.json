@@ -3,7 +3,7 @@
     "target": "ES2021",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2021"],
+    "lib": ["ES2021", "DOM"],
     "allowJs": false,
     "jsx": "react-native",
     "declaration": true,

@@ -8,7 +8,18 @@ import { pollAccountState, fetchAccountDetails, StellarAccountDetails } from '..
  * @param address Optional target address. Defaults to the currently connected public key.
  * @param pollIntervalMs Optional custom polling interval (defaults to 10000ms).
  */
-export function useStellarAccount(address?: string, pollIntervalMs = 10000) {
+export function useStellarAccount(address?: string, pollIntervalMs = 10000): {
+  account: any | null;
+  balances: Array<{
+    asset_type: string;
+    asset_code?: string;
+    asset_issuer?: string;
+    balance: string;
+  }>;
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+} {
   const { publicKey: connectedAddress, network } = useWalletState();
   const targetAddress = address || connectedAddress;
 
