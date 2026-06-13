@@ -60,12 +60,12 @@ export interface StellarAccountDetails {
  * 5. Handle submission errors (e.g. H001, H002, H003) and wrap them into StellarWalletError.
  */
 export async function submitTransaction(
-  signedXdr: string,
-  network: 'testnet' | 'mainnet',
-  horizonUrl?: string
+  _signedXdr: string,
+  _network?: 'testnet' | 'mainnet',
+  _horizonUrl?: string
 ): Promise<HorizonSubmitResult> {
-  console.log('submitTransaction: submitting to Horizon, network:', network);
-  
+  console.log('submitTransaction: submitting to Horizon');
+
   // TODO: Resolve Horizon Server
   // const url = horizonUrl || (network === 'testnet' 
   //   ? 'https://horizon-testnet.stellar.org' 
@@ -87,13 +87,13 @@ export async function submitTransaction(
  */
 export async function fetchAccountDetails(
   address: string,
-  network: 'testnet' | 'mainnet',
-  horizonUrl?: string
+  _network?: 'testnet' | 'mainnet',
+  _horizonUrl?: string
 ): Promise<StellarAccountDetails> {
   console.log('fetchAccountDetails: loading account details for:', address);
-  
+
   // TODO: server.loadAccount(address)
-  
+
   return {
     publicKey: address,
     sequence: '0',
@@ -107,11 +107,11 @@ export async function fetchAccountDetails(
  */
 export function pollAccountState(
   address: string,
-  network: 'testnet' | 'mainnet',
-  intervalMs: number,
-  onUpdate: (details: StellarAccountDetails) => void,
-  onError: (error: Error) => void,
-  horizonUrl?: string
+  _network?: 'testnet' | 'mainnet',
+  intervalMs: number = 10000,
+  onUpdate?: (details: StellarAccountDetails) => void,
+  onError?: (error: Error) => void,
+  _horizonUrl?: string
 ): () => void {
   console.log(`pollAccountState: start polling for ${address} every ${intervalMs}ms`);
 
@@ -121,10 +121,10 @@ export function pollAccountState(
   const poll = async () => {
     if (!active) return;
     try {
-      const details = await fetchAccountDetails(address, network, horizonUrl);
-      if (active) onUpdate(details);
+      const details = await fetchAccountDetails(address);
+      if (active && onUpdate) onUpdate(details);
     } catch (err) {
-      if (active) onError(err as Error);
+      if (active && onError) onError(err as Error);
     } finally {
       if (active) {
         timerId = setTimeout(poll, intervalMs);

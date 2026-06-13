@@ -1,7 +1,12 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StellarWalletContext, WalletConnectionStatus, SDKEvent, StellarWalletContextType } from './context';
-import { WalletConnectManager } from '../session/WalletConnectManager';
-import { SessionReconnectHandler } from '../session/reconnect';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import {
+  StellarWalletContext,
+  WalletConnectionStatus,
+  SDKEvent,
+  StellarWalletContextType,
+} from "./context";
+import { WalletConnectManager } from "../session/WalletConnectManager";
+import { SessionReconnectHandler } from "../session/reconnect";
 
 /**
  * Props accepted by StellarWalletProvider.
@@ -14,7 +19,7 @@ export interface StellarWalletProviderProps {
   /**
    * Target network connection ('testnet' | 'mainnet')
    */
-  network?: 'testnet' | 'mainnet';
+  network?: "testnet" | "mainnet";
   /**
    * Global event callback hook
    */
@@ -27,33 +32,35 @@ export interface StellarWalletProviderProps {
 
 export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
   walletConnectProjectId,
-  network = 'testnet',
+  network = "testnet",
   onEvent,
   children,
-}) => {
-  const [status, setStatus] = useState<WalletConnectionStatus>('disconnected');
+}: StellarWalletProviderProps): JSX.Element => {
+  const [status, setStatus] = useState<WalletConnectionStatus>("disconnected");
   const [publicKey, setPublicKey] = useState<string | null>(null);
-  
+
   // Keep event listeners in a ref to persist across renders
-  const listenersRef = useRef<Map<SDKEvent, Set<(payload: any) => void>>>(new Map());
+  const listenersRef = useRef<Map<SDKEvent, Set<(payload: any) => void>>>(
+    new Map(),
+  );
 
   // Instantiate the WalletConnectManager
   const manager = useMemo(() => {
     return new WalletConnectManager({
       projectId: walletConnectProjectId,
-      network,
+      network: network as "testnet" | "mainnet",
       onSessionConnect: (session) => {
         // Expected Logic:
         // Extract public key address from session namespaces and update state
-        console.log('StellarWalletProvider: Session connected', session);
-        setStatus('connected');
+        console.log("StellarWalletProvider: Session connected", session);
+        setStatus("connected");
         // const address = extractAddressFromSession(session);
         // setPublicKey(address);
         // emit('wallet:connected', { publicKey: address, network });
       },
       onSessionDisconnect: () => {
-        console.log('StellarWalletProvider: Session disconnected');
-        setStatus('disconnected');
+        console.log("StellarWalletProvider: Session disconnected");
+        setStatus("disconnected");
         setPublicKey(null);
         // emit('wallet:disconnected', { reason: 'session_closed' });
       },
@@ -69,21 +76,21 @@ export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
   useEffect(() => {
     const init = async () => {
       try {
-        setStatus('connecting');
+        setStatus("connecting");
         await manager.initialize();
         reconnectHandler.startListening();
-        
+
         // TODO: Update status based on restored active sessions
         const activeSession = manager.getSession();
         if (activeSession) {
-          setStatus('connected');
+          setStatus("connected");
           // setPublicKey(extractAddress(activeSession))
         } else {
-          setStatus('disconnected');
+          setStatus("disconnected");
         }
       } catch (error) {
-        console.error('Failed to initialize WalletConnectManager:', error);
-        setStatus('disconnected');
+        console.error("Failed to initialize WalletConnectManager:", error);
+        setStatus("disconnected");
       }
     };
 
@@ -97,7 +104,10 @@ export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
   /**
    * Subscribe to SDK Events.
    */
-  const on = (event: SDKEvent, callback: (payload: any) => void): (() => void) => {
+  const on = (
+    event: SDKEvent,
+    callback: (payload: any) => void,
+  ): (() => void) => {
     if (!listenersRef.current.has(event)) {
       listenersRef.current.set(event, new Set());
     }
@@ -121,14 +131,14 @@ export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
       try {
         onEvent(event, payload);
       } catch (err) {
-        console.error('Error in onEvent callback:', err);
+        console.error("Error in onEvent callback:", err);
       }
     }
 
     // 2. Dispatch to local hook subscribers
     const set = listenersRef.current.get(event);
     if (set) {
-      set.forEach((cb) => {
+      set.forEach((cb: (payload: any) => void) => {
         try {
           cb(payload);
         } catch (err) {
@@ -143,10 +153,10 @@ export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
    */
   const connect = async (): Promise<void> => {
     try {
-      setStatus('connecting');
+      setStatus("connecting");
       await manager.connect();
     } catch (error) {
-      setStatus('disconnected');
+      setStatus("disconnected");
       throw error;
     }
   };
@@ -157,23 +167,26 @@ export const StellarWalletProvider: React.FC<StellarWalletProviderProps> = ({
   const disconnect = async (): Promise<void> => {
     try {
       await manager.disconnect();
-      setStatus('disconnected');
+      setStatus("disconnected");
       setPublicKey(null);
     } catch (error) {
-      console.error('Disconnect failed:', error);
+      console.error("Disconnect failed:", error);
     }
   };
 
-  const contextValue = useMemo<StellarWalletContextType>(() => ({
-    status,
-    publicKey,
-    network,
-    connect,
-    disconnect,
-    manager,
-    on,
-    emit,
-  }), [status, publicKey, network, manager]);
+  const contextValue = useMemo<StellarWalletContextType>(
+    () => ({
+      status,
+      publicKey,
+      network,
+      connect,
+      disconnect,
+      manager,
+      on,
+      emit,
+    }),
+    [status, publicKey, network, manager],
+  );
 
   return (
     <StellarWalletContext.Provider value={contextValue}>

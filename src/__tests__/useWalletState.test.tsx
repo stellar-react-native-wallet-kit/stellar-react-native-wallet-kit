@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import React from 'react';
 import { useWalletState } from '../hooks/useWalletState';
 import { MockWalletProvider } from '../mock/MockWalletProvider';

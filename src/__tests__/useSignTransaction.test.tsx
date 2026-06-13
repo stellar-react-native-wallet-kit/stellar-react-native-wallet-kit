@@ -1,30 +1,24 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import React from 'react';
 import { useSignTransaction } from '../hooks/useSignTransaction';
 import { MockWalletProvider } from '../mock/MockWalletProvider';
-import { Transaction, Networks, Operation, Asset, Keypair } from '@stellar/stellar-sdk';
+import { Transaction, TransactionBuilder, Networks, Operation, Asset, Keypair, BASE_FEE, Account } from '@stellar/stellar-sdk';
 import { StellarWalletError } from '../errors/StellarWalletError';
 
-// Helper to construct a dummy transaction for signing
 function createDummyTx(): Transaction {
   const sourceKey = Keypair.random();
-  return new Transaction(
-    sourceKey.publicKey(),
-    {
-      fee: '100',
-      seqNum: '1',
-      timeBounds: { minTime: '0', maxTime: '0' },
-      memo: undefined,
-      operations: [
-        Operation.payment({
-          destination: Keypair.random().publicKey(),
-          asset: Asset.native(),
-          amount: '10',
-        }),
-      ],
-    },
-    Networks.TESTNET
-  );
+  const account = new Account(sourceKey.publicKey(), '0');
+  return new TransactionBuilder(account, {
+    fee: BASE_FEE,
+    networkPassphrase: Networks.TESTNET,
+  })
+    .addOperation(Operation.payment({
+      destination: Keypair.random().publicKey(),
+      asset: Asset.native(),
+      amount: '10',
+    }))
+    .setTimeout(0)
+    .build();
 }
 
 describe('useSignTransaction', () => {

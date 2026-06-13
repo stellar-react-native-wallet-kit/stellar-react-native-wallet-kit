@@ -29,29 +29,29 @@ export function useSubmitTransaction() {
 
     try {
       const submitResult = await submitTransaction(signedXdr, network);
-      
+
       setResult(submitResult);
-      
+
       if (context) {
-        context.emit('tx:submitted', { 
-          txHash: submitResult.hash, 
-          ledger: submitResult.ledger 
+        context.emit('tx:submitted', {
+          txHash: submitResult.hash,
+          ledger: submitResult.ledger
         });
       }
-      
+
       return submitResult;
     } catch (err: any) {
       // TODO: Map Horizon submission codes (e.g., H001, H002, H003)
-      let finalError = err instanceof StellarWalletError 
-        ? err 
+      const finalError = err instanceof StellarWalletError
+        ? err
         : new StellarWalletError('H001', 'Horizon submission failed.', err);
-      
+
       setError(finalError);
 
       if (context) {
-        context.emit('tx:failed', { 
-          txHash, 
-          resultCodes: err.resultCodes || [] 
+        context.emit('tx:failed', {
+          txHash,
+          resultCodes: err.resultCodes || []
         });
       }
 

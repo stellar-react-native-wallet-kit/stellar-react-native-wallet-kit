@@ -61,17 +61,17 @@ export class StellarWalletError extends Error {
   constructor(code: StellarWalletErrorCode, customMessage?: string, raw?: any) {
     const message = customMessage || ErrorMessageMap[code];
     super(message);
-    
+
     // Set the prototype explicitly to ensure instanceof works correctly
     Object.setPrototypeOf(this, StellarWalletError.prototype);
-    
+
     this.name = 'StellarWalletError';
     this.code = code;
     this.raw = raw;
 
     // Capture stack trace if available
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, StellarWalletError);
+    if ((Error as any).captureStackTrace) {
+      (Error as any).captureStackTrace(this, StellarWalletError);
     }
   }
 }
